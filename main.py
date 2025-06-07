@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from utils import apply_noise, get_index_from_list, show_tensor_image, T, betas, sqrt_one_minus_alphas_barred, sqrt_recip_alphas, posterior_variance
 from improvedmodel import SimpleUnet
-from dataset import  BATCH_SIZE, IMG_SIZE, load_transformed_dataset
+from dataset import  BATCH_SIZE, IMG_SIZE, load_transformed_dataset, load_cifar_dataset
 from torch.optim import Adam
 from tqdm import tqdm
 import os
@@ -71,44 +71,45 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 optimizer = Adam(model.parameters(), lr=0.001)
 CHECKPOINT_PATH = "model_new_arch (3).pth"
-data_loader = load_transformed_dataset()
-# Load existing checkpoint if available
-start_epoch = 0  # Default: start from scratch
+#data_loader = load_transformed_dataset()
+# data_loader = load_transformed_dataset()
+# # Load existing checkpoint if available
+# start_epoch = 0  # Default: start from scratch
 if os.path.exists(CHECKPOINT_PATH):
     checkpoint = torch.load(CHECKPOINT_PATH, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     start_epoch = checkpoint["epoch"] + 1  # Resume from the next epoch
-    print(f"Resuming training from epoch {start_epoch}")
-epochs = 0 # Try more!
-# image = sample_plot_image()[0]
-# show_tensor_image(image.cpu())
-# plt.show()
-for epoch in range(start_epoch,epochs):
-    epoch_loss = 0
-    with tqdm(enumerate(data_loader), total=len(data_loader), desc=f"Epoch {epoch+1}/{epochs}") as pbar:
-        for step, batch in pbar:
-            optimizer.zero_grad()
+    #print(f"Resuming training from epoch {start_epoch}")
+# epochs = 0 # Try more!
+# # image = sample_plot_image()[0]
+# # show_tensor_image(image.cpu())
+# # plt.show()
+# for epoch in range(start_epoch,epochs):
+#     epoch_loss = 0
+#     with tqdm(enumerate(data_loader), total=len(data_loader), desc=f"Epoch {epoch+1}/{epochs}") as pbar:
+#         for step, batch in pbar:
+#             optimizer.zero_grad()
 
-            t = torch.randint(0, T, (BATCH_SIZE,), device=device).long()
-            loss = get_loss(model, batch[0], t)
-            loss.backward()
-            optimizer.step()
+#             t = torch.randint(0, T, (BATCH_SIZE,), device=device).long()
+#             loss = get_loss(model, batch[0], t)
+#             loss.backward()
+#             optimizer.step()
 
-            epoch_loss += loss.item()
-            pbar.set_postfix(loss=loss.item())
+#             epoch_loss += loss.item()
+#             pbar.set_postfix(loss=loss.item())
 
-    avg_loss = epoch_loss / len(data_loader)
-    print(f"Epoch {epoch+1}/{epochs} | Avg Loss: {avg_loss:.4f}")
+#     avg_loss = epoch_loss / len(data_loader)
+#     print(f"Epoch {epoch+1}/{epochs} | Avg Loss: {avg_loss:.4f}")
 
-    torch.save({
-        "epoch": epoch,
-        "model_state_dict": model.state_dict(),
-        "optimizer_state_dict": optimizer.state_dict(),
-    }, CHECKPOINT_PATH)
-    print(f"Checkpoint saved at epoch {epoch+1}")
+#     torch.save({
+#         "epoch": epoch,
+#         "model_state_dict": model.state_dict(),
+#         "optimizer_state_dict": optimizer.state_dict(),
+#     }, CHECKPOINT_PATH)
+#     print(f"Checkpoint saved at epoch {epoch+1}")
 
-    # Every 5 epochs, print loss and generate an image
-    if (epoch + 1) % 5 == 0:
-        print(f"Epoch {epoch+1} | Loss: {avg_loss:.4f}")
-        #sample_plot_image()
+#     # Every 5 epochs, print loss and generate an image
+#     if (epoch + 1) % 5 == 0:
+#         print(f"Epoch {epoch+1} | Loss: {avg_loss:.4f}")
+#         #sample_plot_image()

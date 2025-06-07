@@ -5,7 +5,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Subset, random_split
 from utils import show_tensor_image
 import matplotlib.pyplot as plt
-BATCH_SIZE = 5
+BATCH_SIZE = 128
 IMG_SIZE = 256
 
 data_transforms = [
@@ -16,8 +16,8 @@ data_transforms = [
     ]
 data_transform = transforms.Compose(data_transforms)
 def load_transformed_dataset():
+    # image_dir = "E:\\archive (1)\\cars_train"
     image_dir = "E:\\ffhq256x256"
-    
     dataset = datasets.ImageFolder(root=image_dir, transform=data_transform)
     trainloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE,
                                              shuffle=True, drop_last=True)

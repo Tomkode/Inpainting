@@ -124,3 +124,34 @@ def apply_random_mask(image, max_mask_area=0.5):
     masked_image = image * mask
 
     return masked_image, mask
+
+def apply_center_mask(image, mask_size=0.3):
+    """
+    Apply a mask in the center of the image.
+    
+    Args:
+        image (torch.Tensor): Input image tensor of shape (C, H, W)
+        mask_size (float): Size of the mask relative to image dimensions (default: 30%)
+        
+    Returns:
+        torch.Tensor: Masked image
+        torch.Tensor: Binary mask
+    """
+    _, H, W = image.shape  # Get image dimensions
+    
+    # Calculate mask dimensions
+    mask_h = int(H * mask_size)
+    mask_w = int(W * mask_size)
+    
+    # Calculate center position
+    top = (H - mask_h) // 2
+    left = (W - mask_w) // 2
+
+    # Create a binary mask (1 for visible, 0 for masked)
+    mask = torch.ones_like(image)
+    mask[:, top:top + mask_h, left:left + mask_w] = 0  # Apply the mask
+
+    # Apply the mask to the image
+    masked_image = image * mask
+
+    return masked_image, mask
