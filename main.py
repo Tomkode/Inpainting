@@ -30,15 +30,12 @@ def sample_timestep(x, t):
     )
     sqrt_recip_alphas_t = get_index_from_list(sqrt_recip_alphas, t, x.shape)
     
-    # Call model (current image - noise prediction)
     model_mean = sqrt_recip_alphas_t * (
         x - betas_Ts * model(x, t) / sqrt_one_minus_alphas_barred_t
     )
     posterior_variance_t = get_index_from_list(posterior_variance, t, x.shape)
     
     if t == 0:
-        # As pointed out by Luis Pereira (see YouTube comment)
-        # The t's are offset from the t's in the paper
         return model_mean
     else:
         noise = torch.randn_like(x)
@@ -46,7 +43,6 @@ def sample_timestep(x, t):
 
 @torch.no_grad()
 def sample_plot_image(img = None):
-    # Sample noise
     img_size = IMG_SIZE
     if img is None:
         img = torch.randn((1, 3, img_size, img_size), device=device)
@@ -58,7 +54,6 @@ def sample_plot_image(img = None):
     for i in range(0,T)[::-1]:
         t = torch.full((1,), i, device=device, dtype=torch.long)
         img = sample_timestep(img, t)
-        # Edit: This is to maintain the natural range of the distribution
         img = torch.clamp(img, -1.0, 1.0)
         if i % stepsize == 0:
             plt.subplot(1, num_images, int(i/stepsize)+1)
@@ -71,45 +66,38 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 optimizer = Adam(model.parameters(), lr=0.001)
 CHECKPOINT_PATH = "model_new_arch (3).pth"
-#data_loader = load_transformed_dataset()
-# data_loader = load_transformed_dataset()
-# # Load existing checkpoint if available
-# start_epoch = 0  # Default: start from scratch
+data_loader = load_transformed_dataset()
+start_epoch = 0
 if os.path.exists(CHECKPOINT_PATH):
     checkpoint = torch.load(CHECKPOINT_PATH, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     start_epoch = checkpoint["epoch"] + 1  # Resume from the next epoch
-    #print(f"Resuming training from epoch {start_epoch}")
-# epochs = 0 # Try more!
-# # image = sample_plot_image()[0]
-# # show_tensor_image(image.cpu())
-# # plt.show()
-# for epoch in range(start_epoch,epochs):
-#     epoch_loss = 0
-#     with tqdm(enumerate(data_loader), total=len(data_loader), desc=f"Epoch {epoch+1}/{epochs}") as pbar:
-#         for step, batch in pbar:
-#             optimizer.zero_grad()
+    print(f"Resuming training from epoch {start_epoch}")
+epochs = 100 
+for epoch in range(start_epoch,epochs):
+    epoch_loss = 0
+    with tqdm(enumerate(data_loader), total=len(data_loader), desc=f"Epoch {epoch+1}/{epochs}") as pbar:
+        for step, batch in pbar:
+            optimizer.zero_grad()
 
-#             t = torch.randint(0, T, (BATCH_SIZE,), device=device).long()
-#             loss = get_loss(model, batch[0], t)
-#             loss.backward()
-#             optimizer.step()
+            t = torch.randint(0, T, (BATCH_SIZE,), device=device).long()
+            loss = get_loss(model, batch[0], t)
+            loss.backward()
+            optimizer.step()
 
-#             epoch_loss += loss.item()
-#             pbar.set_postfix(loss=loss.item())
+            epoch_loss += loss.item()
+            pbar.set_postfix(loss=loss.item())
 
-#     avg_loss = epoch_loss / len(data_loader)
-#     print(f"Epoch {epoch+1}/{epochs} | Avg Loss: {avg_loss:.4f}")
+    avg_loss = epoch_loss / len(data_loader)
+    print(f"Epoch {epoch+1}/{epochs} | Avg Loss: {avg_loss:.4f}")
 
-#     torch.save({
-#         "epoch": epoch,
-#         "model_state_dict": model.state_dict(),
-#         "optimizer_state_dict": optimizer.state_dict(),
-#     }, CHECKPOINT_PATH)
-#     print(f"Checkpoint saved at epoch {epoch+1}")
+    torch.save({
+        "epoch": epoch,
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+    }, CHECKPOINT_PATH)
+    print(f"Checkpoint saved at epoch {epoch+1}")
 
-#     # Every 5 epochs, print loss and generate an image
-#     if (epoch + 1) % 5 == 0:
-#         print(f"Epoch {epoch+1} | Loss: {avg_loss:.4f}")
-#         #sample_plot_image()
+    if (epoch + 1) % 5 == 0:
+        print(f"Epoch {epoch+1} | Loss: {avg_loss:.4f}")

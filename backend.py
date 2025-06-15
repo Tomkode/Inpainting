@@ -21,10 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/hello")
-def hello_world():
-    return JSONResponse(content={"message": "Hello, world!"}) 
-
 @app.post("/inpaint")
 async def inpaint(
     image: UploadFile = File(...),
@@ -33,7 +29,6 @@ async def inpaint(
     x2: int = Form(...),
     y2: int = Form(...)
 ):
-    # Read image file into a tensor
     image_bytes = await image.read()
     pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     preprocess = transforms.Compose([
@@ -42,7 +37,6 @@ async def inpaint(
     ])
     image_tensor = preprocess(pil_image)
 
-    # Mask creation
     _, H, W = image_tensor.shape
     mask = torch.ones((H, W), dtype=image_tensor.dtype, device=device)
  

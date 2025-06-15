@@ -8,4 +8,5 @@ pytorch-msssim>=0.2.1
 opencv-python>=4.5.0
 fastapi>=0.68.0
 uvicorn>=0.15.0
-python-multipart>=0.0.5 
+python-multipart>=0.0.5
+tqdm>=4.65.0 

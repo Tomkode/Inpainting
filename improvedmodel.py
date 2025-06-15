@@ -13,12 +13,9 @@ class Block(nn.Module):
             self.conv1 = nn.Conv2d(in_ch, out_ch, 3, padding=1)
             self.transform = nn.Conv2d(out_ch, out_ch, 4, 2, 1)
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
-        # Improvement 1: Replace BatchNorm with GroupNorm
-        self.norm1 = nn.GroupNorm(32, out_ch)  # 32 groups is a common choice
+        self.norm1 = nn.GroupNorm(32, out_ch)  
         self.norm2 = nn.GroupNorm(32, out_ch)
         self.relu  = nn.ReLU()
-        # Improvement 2: Add attention mechanism
-        #self.self_attn = nn.MultiheadAttention(out_ch, num_heads=4, batch_first=True) if out_ch >= 128 else None # Only for larger channels
 
         
     def forward(self, x, t, ):
